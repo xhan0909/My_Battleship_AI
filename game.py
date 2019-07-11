@@ -20,6 +20,8 @@ class Player:
         self.is_bot = is_bot
         self.board = self.place_ships()
         self.queue = collections.deque([])
+        self.prev_hit = None
+        self.hit_direction = [None, None]
 
     def place_ships(self) -> Board:
         """Returns a Board with ships placed."""
@@ -38,10 +40,10 @@ class Player:
             return random_move_target(self.queue, opponent_board_view) \
                 if self.is_bot else input_move(opponent_board_view.shots)
         elif mode == 'parity':
-            return random_move_parity(self.queue, opponent_board_view) \
+            return random_move_parity(opponent_board_view, self) \
                 if self.is_bot else input_move(opponent_board_view.shots)
 
-    def display(self, opponent_board_view: Board, show_bot=False) -> bool:
+    def display(self, opponent_board_view: Board, show_bot=False) -> None:
         """When true, we'll print the board each move."""
         if not self.is_bot or show_bot is True:
             # display boards only in human mode
@@ -54,7 +56,7 @@ def play_one_game(player1: Player, player2: Player, mode, display_bot=False):
     move_cnt_p2 = 0
 
     while True:
-        if player1.is_bot and player2.is_bot and display_bot:  # for checking bots only
+        if player1.is_bot and player2.is_bot and display_bot:  # for displaying bots only
             time.sleep(2)
 
         player1.display(player2.board, display_bot)
@@ -89,6 +91,7 @@ def play_one_game(player1: Player, player2: Player, mode, display_bot=False):
 
 
 def str2bool(v):
+    # reference: https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
     if isinstance(v, bool):
        return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):

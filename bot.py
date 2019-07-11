@@ -3,6 +3,7 @@ import numpy as np
 from random import random, randint
 
 from board import Board, BOARD_SIZE, SHIP_SIZES, Point, NO_SHOT
+# from game import Player
 
 
 def _place_ship(size: int, has_ship: np.ndarray, ship_type=None):
@@ -109,14 +110,16 @@ def random_move_target(queue: collections.deque, opponent_board_view: Board) -> 
     return shot
 
 
-def random_move_parity(queue: collections.deque, opponent_board_view: Board) -> Point:
+def random_move_parity(opponent_board_view: Board, player) -> Point:
     """
     Randomly choose an empty square to shoot at when in 'hunt' mode,
     if hit, change to 'target' mode and focus first on neighbor cells.
     """
     # decide moving mode
-    if len(queue) == 0:
+    if len(player.queue) == 0:
         mode = 'hunt'
+        player.hit_direction = [None, None]
+        player.prev_hit = None
     else:
         mode = 'target'
 
@@ -129,24 +132,46 @@ def random_move_parity(queue: collections.deque, opponent_board_view: Board) -> 
         target_idx,  = np.where(sum_idx % 2 == 0)
 
         # random choose one element from the even r/c indices
-        choice = np.random.choice(target_idx, size=1)
+        choice = np.random.choice(target_idx, size=1)[0]
         shot = Point(x=empty_xs[choice], y=empty_ys[choice])
 
     elif mode == 'target':
-        shot = queue.popleft()
-        while opponent_board_view.shots[shot.x, shot.y] != NO_SHOT:
-            if len(queue) > 0:
-                shot = queue.popleft()
+        shot = player.queue.popleft()
+        # print(player.hit_direction, player.queue, player.prev_hit)
+        while opponent_board_view.shots[shot.x, shot.y] != NO_SHOT \
+                or not (shot.x == player.hit_direction[0] or shot.y == player.hit_direction[1]):
+            if len(player.queue) > 0:
+                shot = player.queue.popleft()
             else:
-                shot = random_move_parity(queue, opponent_board_view)
+                shot = random_move_parity(opponent_board_view, player)
 
     # add neighbors to queue if the shot is successful
     if opponent_board_view.has_ship[shot.x, shot.y]:
+        # update hit direction
+        player.prev_hit, player.hit_direction = \
+            update_hit_direction(player.prev_hit, shot, player.hit_direction)
+
         up = Point(x=shot.x, y=max(shot.y - 1, 0))
         down = Point(x=shot.x, y=min(shot.y + 1, 9))
         left = Point(x=max(shot.x - 1, 0), y=shot.y)
         right = Point(x=min(shot.x + 1, 9), y=shot.y)
         neighbors = [up, down, left, right]
-        queue.extend(neighbors)
+        player.queue.extend(neighbors)
 
     return shot
+
+
+def update_hit_direction(prev_hit: Point, cur_hit: Point, hit_direction: list):
+    """Update previous hit and hit direction inplace"""
+    if not prev_hit:
+        # first hit, then all four directions are available
+        prev_hit = cur_hit
+        hit_direction[0] = cur_hit.x
+        hit_direction[1] = cur_hit.y
+    else:
+        x_direction = cur_hit.x if cur_hit.x == prev_hit.x else None
+        y_direction = cur_hit.y if cur_hit.y == prev_hit.y else None
+        hit_direction[0] = x_direction
+        hit_direction[1] = y_direction
+
+    return prev_hit, hit_direction
