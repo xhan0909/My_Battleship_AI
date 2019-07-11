@@ -1,3 +1,4 @@
+import time
 import collections
 import numpy as np
 from random import random, randint
@@ -123,6 +124,10 @@ def random_move_parity(opponent_board_view: Board, player) -> Point:
     else:
         mode = 'target'
 
+    # end infinite loop for test purpose
+    # TODO: fix this infinite loop bug in the recursive call
+    timeout = time.time() + .1  # 1 seconds from now
+
     # make shot
     if mode == 'hunt':
         empty_xs, empty_ys = np.where(opponent_board_view.shots == NO_SHOT)
@@ -137,15 +142,15 @@ def random_move_parity(opponent_board_view: Board, player) -> Point:
 
     elif mode == 'target':
         shot = player.queue.popleft()
-        # print(player.hit_direction, player.queue, player.prev_hit)
-        while opponent_board_view.shots[shot.x, shot.y] != NO_SHOT \
-                or not (shot.x == player.hit_direction[0] or shot.y == player.hit_direction[1]):
+        while is_shot_invalid(player, opponent_board_view, shot):
+            if time.time() > timeout:
+                break
             if len(player.queue) > 0:
                 shot = player.queue.popleft()
             else:
                 shot = random_move_parity(opponent_board_view, player)
 
-    # add neighbors to queue if the shot is successful
+    # add neighbors to queue if the shot is a hit
     if opponent_board_view.has_ship[shot.x, shot.y]:
         # update hit direction
         player.prev_hit, player.hit_direction = \
@@ -175,3 +180,8 @@ def update_hit_direction(prev_hit: Point, cur_hit: Point, hit_direction: list):
         hit_direction[1] = y_direction
 
     return prev_hit, hit_direction
+
+
+def is_shot_invalid(player, opponent_board_view, shot):
+    return opponent_board_view.shots[shot.x, shot.y] != NO_SHOT \
+           or not (shot.x == player.hit_direction[0] or shot.y == player.hit_direction[1])

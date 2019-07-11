@@ -40,6 +40,7 @@ class Player:
             return random_move_target(self.queue, opponent_board_view) \
                 if self.is_bot else input_move(opponent_board_view.shots)
         elif mode == 'parity':
+            # print('moving...')
             return random_move_parity(opponent_board_view, self) \
                 if self.is_bot else input_move(opponent_board_view.shots)
 
@@ -59,10 +60,10 @@ def play_one_game(player1: Player, player2: Player, mode, display_bot=False):
         if player1.is_bot and player2.is_bot and display_bot:  # for displaying bots only
             time.sleep(2)
 
-        player1.display(player2.board, display_bot)
         if player2.board.all_sunk():
             print(f"Player 1 wins! Total moves: {move_cnt_p1}.\n")
             return
+        player1.display(player2.board, display_bot)
         player1_move = player1.choose_move(player2.board, mode)
         move_cnt_p1 += 1
         player2.board.make_move(player1_move)
@@ -74,10 +75,10 @@ def play_one_game(player1: Player, player2: Player, mode, display_bot=False):
         except:
             pass
 
-        player2.display(player1.board, display_bot)
         if player1.board.all_sunk():
             print(f"Player 2 wins! Total moves: {move_cnt_p2}.\n")
             return
+        player2.display(player1.board, display_bot)
         player2_move = player2.choose_move(player1.board, mode)
         move_cnt_p2 += 1
         player1.board.make_move(player2_move)

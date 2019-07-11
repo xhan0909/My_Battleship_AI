@@ -84,6 +84,7 @@ class Board:
                 or self.shots[shot.x, shot.y] != NO_SHOT):
             raise ValueError(f'{shot} is an illegal move.')
 
+        # print(self.shots, self.has_ship)
         if self.has_ship[shot.x, shot.y]:
             self.shots[shot.x, shot.y] = HIT
 
@@ -93,6 +94,7 @@ class Board:
                     loc.remove((shot.x, shot.y))
         else:
             self.shots[shot.x, shot.y] = MISS
+            # print(self.shots, shot)
 
     def all_sunk(self) -> bool:
         hit_count = np.sum(self.shots == HIT)
