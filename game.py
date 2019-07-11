@@ -41,23 +41,23 @@ class Player:
             return random_move_parity(self.queue, opponent_board_view) \
                 if self.is_bot else input_move(opponent_board_view.shots)
 
-    def display(self, opponent_board_view: Board) -> bool:
+    def display(self, opponent_board_view: Board, show_bot=False) -> bool:
         """When true, we'll print the board each move."""
-        # if not self.is_bot:
+        if not self.is_bot or show_bot is True:
             # display boards only in human mode
-        display_boards(self.board, opponent_board_view.shots)
+            display_boards(self.board, opponent_board_view.shots)
 
 
-def play_one_game(player1: Player, player2: Player, mode):
+def play_one_game(player1: Player, player2: Player, mode, display_bot=False):
 
     move_cnt_p1 = 0
     move_cnt_p2 = 0
 
     while True:
-        if player1.is_bot and player2.is_bot:  # for checking bots only
+        if player1.is_bot and player2.is_bot and display_bot:  # for checking bots only
             time.sleep(2)
 
-        player1.display(player2.board)
+        player1.display(player2.board, display_bot)
         if player2.board.all_sunk():
             print(f"Player 1 wins! Total moves: {move_cnt_p1}.\n")
             return
@@ -72,7 +72,7 @@ def play_one_game(player1: Player, player2: Player, mode):
         except:
             pass
 
-        player2.display(player1.board)
+        player2.display(player1.board, display_bot)
         if player1.board.all_sunk():
             print(f"Player 2 wins! Total moves: {move_cnt_p2}.\n")
             return
@@ -88,12 +88,25 @@ def play_one_game(player1: Player, player2: Player, mode):
             pass
 
 
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('mode', nargs='?', type=str, default='random',
                         help='bot learning mode (random/target/parity)')
     parser.add_argument('agent', nargs='?', type=str, default='human',
                         help='game mode (human/bot, default: %(default)s)')
+    parser.add_argument('show_bot', nargs='?', type=str2bool, default=False,
+                        help='show bot fighting (default: %(default)s)')
     args = parser.parse_args()
 
     if args.agent == 'human':
@@ -103,4 +116,4 @@ if __name__ == '__main__':
         player1 = Player(is_bot=True)
         player2 = Player(is_bot=True)
 
-    play_one_game(player1, player2, args.mode)
+    play_one_game(player1, player2, args.mode, args.show_bot)
