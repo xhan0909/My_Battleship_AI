@@ -124,16 +124,12 @@ def random_move_parity(queue: collections.deque, opponent_board_view: Board) -> 
     if mode == 'hunt':
         empty_xs, empty_ys = np.where(opponent_board_view.shots == NO_SHOT)
 
-        # get only even row and even column elements
-        even_x_idx, = np.where(empty_xs % 2 == 0)
-        even_y_idx, = np.where(empty_ys % 2 == 0)
-        indices = np.intersect1d(even_x_idx, even_y_idx)
+        # get only cells whose r + c is even
+        sum_idx = empty_xs + empty_ys
+        target_idx,  = np.where(sum_idx % 2 == 0)
 
         # random choose one element from the even r/c indices
-        if len(indices) > 0:
-            choice = np.random.choice(indices, size=1)
-        else:
-            choice = randint(0, len(empty_xs) - 1)
+        choice = np.random.choice(target_idx, size=1)
         shot = Point(x=empty_xs[choice], y=empty_ys[choice])
 
     elif mode == 'target':

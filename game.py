@@ -43,9 +43,9 @@ class Player:
 
     def display(self, opponent_board_view: Board) -> bool:
         """When true, we'll print the board each move."""
-        if not self.is_bot:
+        # if not self.is_bot:
             # display boards only in human mode
-            display_boards(self.board, opponent_board_view.shots)
+        display_boards(self.board, opponent_board_view.shots)
 
 
 def play_one_game(player1: Player, player2: Player, mode):
@@ -54,8 +54,8 @@ def play_one_game(player1: Player, player2: Player, mode):
     move_cnt_p2 = 0
 
     while True:
-        # if player1.is_bot and player2.is_bot:  # for checking bots only
-        #     time.sleep(2)
+        if player1.is_bot and player2.is_bot:  # for checking bots only
+            time.sleep(2)
 
         player1.display(player2.board)
         if player2.board.all_sunk():
