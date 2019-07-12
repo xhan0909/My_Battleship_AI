@@ -124,9 +124,9 @@ def random_move_parity(opponent_board_view: Board, player) -> Point:
     else:
         mode = 'target'
 
-    # end infinite loop for test purpose
+    # end early if the bot takes too long to "think"
     # TODO: fix this infinite loop bug in the recursive call
-    timeout = time.time() + .1  # 1 seconds from now
+    timeout = time.time() + .1  # .1 seconds from now
 
     # make shot
     if mode == 'hunt':
@@ -149,6 +149,7 @@ def random_move_parity(opponent_board_view: Board, player) -> Point:
                 shot = player.queue.popleft()
             else:
                 shot = random_move_parity(opponent_board_view, player)
+                # print(opponent_board_view.shots[shot.x, shot.y])
 
     # add neighbors to queue if the shot is a hit
     if opponent_board_view.has_ship[shot.x, shot.y]:
@@ -183,5 +184,7 @@ def update_hit_direction(prev_hit: Point, cur_hit: Point, hit_direction: list):
 
 
 def is_shot_invalid(player, opponent_board_view, shot):
+
     return opponent_board_view.shots[shot.x, shot.y] != NO_SHOT \
-           or not (shot.x == player.hit_direction[0] or shot.y == player.hit_direction[1])
+           or (opponent_board_view.shots[shot.x, shot.y] == NO_SHOT and
+               not (shot.x == player.hit_direction[0] or shot.y == player.hit_direction[1]))
